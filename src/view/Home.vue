@@ -1,48 +1,68 @@
 <script setup>
-import { onMounted, ref, computed, watch, nextTick } from 'vue';
-import { initTWE, Collapse, Ripple, Modal, Input } from 'tw-elements';
-import { GetGamers, SignInGamers, DeleteGamers } from '../api/springApi';
-import { toast } from 'vue3-toastify';
-import 'vue3-toastify/dist/index.css';
-import modal from '../components/modal.vue';
-import store from '../store';
-import loading from '../components/loading.vue';
+import { onMounted, ref, computed, watch, nextTick } from 'vue'
+import { initTWE, Collapse, Ripple, Modal, Input } from 'tw-elements'
+import { GetGamers, SignInGamers, DeleteGamers } from '../api/springApi'
+import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
+import modal from '../components/modal.vue'
+import store from '../store'
+import loading from '../components/loading.vue'
+import { useRoute } from 'vue-router'
 
-const useStore = store();
-const userlist = ref([]);
-const selectedRole = ref('');
-const isLoading = ref(true);
+const route = useRoute()
+const useStore = store()
+const userlist = ref([])
+const selectedRole = ref('')
+const isLoading = ref(true)
 
 onMounted(async () => {
-  const userData = await GetGamers();
-  userlist.value = userData;
-  await initAccordion();
-  isLoading.value = false;
-});
+  const userData = await GetGamers()
+  userlist.value = userData
+  await initAccordion()
+  isLoading.value = false
+})
+
+watch(
+  () => route.fullPath,
+  async newPath => {
+    if (newPath === '/Home') {
+      await loadGamers()
+    }
+  }
+)
+
+const loadGamers = async () => {
+  isLoading.value = true
+  try {
+    const userData = await GetGamers()
+    userlist.value = userData
+    await initAccordion()
+  } finally {
+    isLoading.value = false
+  }
+}
 
 const initAccordion = async () => {
-  initTWE({ Collapse, Ripple, Modal, Input });
-};
+  initTWE({ Collapse, Ripple, Modal, Input })
+}
 
 // Function to refresh the gamers list
 const refreshGamersList = async () => {
-  isLoading.value = true;
-  const userData = await GetGamers();
-  userlist.value = userData;
-  await initAccordion();
-  isLoading.value = false;
-};
+  isLoading.value = true
+  const userData = await GetGamers()
+  userlist.value = userData
+  await initAccordion()
+  isLoading.value = false
+}
 
 // 直接使用 store 的 CharacterInfo，避免靜態賦值
-const CharacterInfo = computed(() => useStore.CharacterInfo);
+const CharacterInfo = computed(() => useStore.CharacterInfo)
 
 // 檢查 FinalProfile 的計算邏輯
 const FinalProfile = computed(() => {
   return CharacterInfo.value
-    .map((item1) => {
-      const match = userlist.value.find(
-        (item2) => item2.roleName === item1.Role
-      );
+    .map(item1 => {
+      const match = userlist.value.find(item2 => item2.roleName === item1.Role)
 
       return match
         ? {
@@ -51,63 +71,63 @@ const FinalProfile = computed(() => {
             img: match.avatarUrl,
             Role: item1.Role,
             task: item1.Task,
-            skill: item1.skill,
+            skill: item1.skill
           }
-        : null;
+        : null
     })
-    .filter((item) => item !== null);
-});
+    .filter(item => item !== null)
+})
 
-const AddPerson = async (e) => {
-  e.preventDefault();
-  if (!selectedRole.value) return; // 防止空值提交
+const AddPerson = async e => {
+  e.preventDefault()
+  if (!selectedRole.value) return // 防止空值提交
 
-  const RoleExisted = userlist.value.find((item) => {
-    return item.roleName == selectedRole.value;
-  });
+  const RoleExisted = userlist.value.find(item => {
+    return item.roleName == selectedRole.value
+  })
 
   if (RoleExisted) {
-    toast.error('此角色已存在');
-    return;
+    toast.error('此角色已存在')
+    return
   } else {
     const Info = {
       username: useStore.profile.username,
-      role: selectedRole.value,
-    };
+      role: selectedRole.value
+    }
 
-    await SignInGamers(Info);
-    window.location.reload();
+    await SignInGamers(Info)
+    window.location.reload()
 
     // 關閉 modal
-    document.querySelector('[data-twe-modal-dismiss]').click();
+    document.querySelector('[data-twe-modal-dismiss]').click()
   }
-};
+}
 
-const deleteProfile = async (username) => {
-  const confirmed = window.confirm(`確定要刪除 ${username} 嗎？`);
-  if (!confirmed) return;
+const deleteProfile = async username => {
+  const confirmed = window.confirm(`確定要刪除 ${username} 嗎？`)
+  if (!confirmed) return
 
   try {
-    await DeleteGamers(username);
-    toast.success('刪除成功');
+    await DeleteGamers(username)
+    toast.success('刪除成功')
     setTimeout(() => {
-      window.location.reload();
-    }, 1000);
+      window.location.reload()
+    }, 1000)
   } catch (error) {
-    console.log(error);
+    console.log(error)
   }
-};
+}
 
 watch(
   () => FinalProfile.value,
-  async (newVal) => {
+  async newVal => {
     if (newVal.length > 0) {
-      await nextTick();
-      initAccordion();
+      await nextTick()
+      initAccordion()
     }
   },
   { immediate: true }
-);
+)
 </script>
 
 <template>
@@ -127,7 +147,7 @@ watch(
           class="flex items-center justify-between px-2 py-1 rounded-t-lg bg-white dark:bg-gray-800 hover:bg-blue-200 transition"
           :style="{
             color:
-              item.gender === 1 ? 'blue' : item.gender === 2 ? 'green' : 'red',
+              item.gender === 1 ? 'blue' : item.gender === 2 ? 'green' : 'red'
           }"
         >
           <!-- 點擊展開按鈕 -->
@@ -141,11 +161,7 @@ watch(
             :aria-controls="`collapse${index}`"
             :style="{
               color:
-                item.gender === 1
-                  ? 'blue'
-                  : item.gender === 2
-                  ? 'green'
-                  : 'red',
+                item.gender === 1 ? 'blue' : item.gender === 2 ? 'green' : 'red'
             }"
           >
             <img
