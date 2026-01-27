@@ -232,15 +232,7 @@ watch(
       </button>
 
       <!-- 刷新 button -->
-      <button
-        type="button"
-        class="inline-block rounded bg-gray-600 px-6 pb-2 pt-2.5 text-md font-medium uppercase leading-normal text-white shadow-primary-3 transition duration-150 ease-in-out hover:bg-gray-700 hover:shadow-primary-2 focus:bg-gray-700 focus:shadow-primary-2 focus:outline-none focus:ring-0 active:bg-gray-800 active:shadow-primary-2 dark:shadow-black/30 dark:hover:shadow-dark-strong dark:focus:shadow-dark-strong dark:active:shadow-dark-strong"
-        @click="refreshGamersList"
-        data-twe-ripple-init
-        data-twe-ripple-color="light"
-      >
-        刷新
-      </button>
+
     </div>
 
     <!-- Modal -->
